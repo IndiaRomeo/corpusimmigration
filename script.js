@@ -1,3 +1,9 @@
+const favicon = document.createElement('link');
+favicon.rel = 'icon';
+favicon.type = 'image/jpeg';
+favicon.href = 'images/logo.jpg';
+document.head.append(favicon);
+
 const button = document.querySelector('.menu-button');
 const links = document.querySelector('.nav-links');
 button?.addEventListener('click', () => {
