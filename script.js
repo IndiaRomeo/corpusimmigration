@@ -47,20 +47,38 @@ next?.replaceChildren(Object.assign(document.createElement('small'), { textConte
 const reviews = [
   ['Sofía Ramírez', 'Me explicaron cada etapa de mi proceso con mucha paciencia. Me sentí acompañada y segura desde la primera consulta.'],
   ['Carlos Hernández', 'Un equipo serio, humano y muy profesional. Mi caso fue tratado con una atención excelente.'],
-  ['Valentina Torres', 'La comunicación fue clara y constante. Recomiendo a Corpus Inmigración con toda confianza.'],
-  ['Miguel Álvarez', 'Encontré abogados que realmente se preocuparon por mi familia y por alcanzar el mejor resultado.'],
-  ['Andrea López', 'Excelente servicio. Siempre respondieron mis dudas y me dieron tranquilidad durante el proceso.'],
-  ['José Martínez', 'Profesionales, organizados y cercanos. Estoy muy agradecido por el acompañamiento recibido.'],
-  ['Daniela Cruz', 'El trato fue respetuoso y transparente. Se nota su experiencia en temas de inmigración.'],
-  ['Roberto Silva', 'Desde la primera llamada recibí orientación honesta y clara. Una firma que inspira confianza.'],
-  ['Paola Jiménez', 'Gracias por defender mi caso con tanta dedicación. La atención fue impecable de principio a fin.'],
-  ['Luis García', 'Una experiencia excelente. Todo el equipo fue atento, puntual y comprometido con mi caso.']
+  ['Valentina Torres', 'La comunicación fue clara y constante. Recomiendo a Corpus Inmigración con toda confianza.']
 ];
 const reviewsSection = document.createElement('section');
 reviewsSection.className = 'reviews';
 reviewsSection.id = 'resenas';
 reviewsSection.innerHTML = `<div class="container"><div class="reviews-heading"><div><p class="eyebrow red">OPINIONES DE CLIENTES</p><h2>Historias de confianza</h2></div><div class="rating"><b>★ 4.9</b><span>Basado en reseñas de clientes</span></div></div><div class="reviews-grid">${reviews.map(([name, text]) => `<article class="review-card"><div class="review-top"><span class="review-avatar">${name.split(' ').map(part => part[0]).join('').slice(0, 2)}</span><div><h3>${name}</h3><p>★★★★★</p></div></div><blockquote>“${text}”</blockquote><span class="review-source">Reseña de cliente</span></article>`).join('')}</div></div>`;
 document.querySelector('.contact')?.before(reviewsSection);
+
+const animateStat = (el) => {
+  const target = parseFloat(el.dataset.countTo);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const duration = 1400;
+  const start = performance.now();
+  const step = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.round(target * eased);
+    el.textContent = prefix + value.toLocaleString('en-US') + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+};
+const statsObserver = new IntersectionObserver((entries, obs) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      animateStat(entry.target);
+      obs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.stat-number[data-count-to]').forEach((el) => statsObserver.observe(el));
 
 const whatsapp = document.createElement('a');
 whatsapp.className = 'whatsapp'; whatsapp.href = 'https://wa.me/12792051468'; whatsapp.target = '_blank'; whatsapp.rel = 'noopener'; whatsapp.setAttribute('aria-label', 'Contactar por WhatsApp');
@@ -240,5 +258,5 @@ bioOverlay.querySelector('.bio-close').addEventListener('click', closeBio);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bioOverlay.hidden) closeBio(); });
 
 const style = document.createElement('style');
-style.textContent = `.hero-bottom{justify-content:flex-end!important}.portrait{height:260px!important;position:relative!important}.portrait img{height:100%!important;width:100%!important;object-fit:cover!important;object-position:center!important}.portrait span{height:100%;width:100%;display:grid;place-items:center}.lawyer-card{height:100%!important;display:flex!important;flex-direction:column!important}.card-info{min-height:191px!important;display:flex!important;flex-direction:column!important}.card-info a{margin-top:auto}.slider-control{min-width:118px!important;height:44px!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:center!important;color:#b10f1d!important;border:1px solid #d5c7c8!important;border-radius:999px!important;background:#fff!important;font-size:1.25rem!important;cursor:pointer}.slider-control small{font-family:"DM Sans",sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}.slider-control:hover{background:#b10f1d!important;border-color:#b10f1d!important;color:#fff!important}.reviews{padding:105px 0;background-image:linear-gradient(rgba(14,11,10,.6),rgba(14,11,10,.6)),url("images/image_4.jpg");background-size:cover;background-position:center}.reviews-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:45px}.reviews-heading h2{font-size:clamp(2.25rem,4vw,4rem);letter-spacing:-.045em}.rating{display:flex;flex-direction:column;gap:5px;color:#a29da0;font-size:.8rem}.rating b{font-size:1.15rem;color:#e0a640}.reviews-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}.review-card{background:#1b191c;border:1px solid rgba(255,255,255,.07);padding:22px;min-height:232px;display:flex;flex-direction:column;box-shadow:0 8px 22px rgba(0,0,0,.35)}.review-top{display:flex;align-items:center;gap:11px}.review-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#262528,#7f1220);color:#fff;font-size:.7rem;font-weight:700}.review-top h3{font-family:"DM Sans",sans-serif;font-size:.87rem;line-height:1.2}.review-top p{margin:3px 0 0;color:#e39b16;font-size:.76rem;letter-spacing:.08em}.review-card blockquote{margin:19px 0;font-size:.84rem;line-height:1.62;color:#d3cecf}.review-source{margin-top:auto;color:#8f8a8c;font-size:.67rem}.whatsapp{position:fixed;right:24px;bottom:24px;z-index:20;display:flex;align-items:center;gap:9px;padding:13px 17px 13px 13px;border-radius:999px;background:#25d366;color:#fff;text-decoration:none;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.82rem;box-shadow:0 8px 22px rgba(0,0,0,.28);transition:transform .2s,background .2s}.whatsapp:hover{background:#1ebe5b;transform:translateY(-3px)}.whatsapp svg{width:25px;height:25px;fill:currentColor}@media(max-width:850px){.reviews-grid{grid-template-columns:repeat(2,1fr)}.reviews-heading{align-items:start;flex-direction:column;gap:20px}}@media(max-width:600px){.slider-control{min-width:40px!important;width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important}.slider-control small{display:none}.reviews{padding:72px 0}.reviews-grid{grid-template-columns:1fr}.review-card{min-height:0}}`;
+style.textContent = `.hero-bottom{justify-content:flex-end!important}.lawyer-card{height:100%!important;display:flex!important;flex-direction:column!important}.card-info{min-height:191px!important;display:flex!important;flex-direction:column!important}.card-info a{margin-top:auto}.slider-control{min-width:118px!important;height:44px!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:center!important;color:#b10f1d!important;border:1px solid #d5c7c8!important;border-radius:999px!important;background:#fff!important;font-size:1.25rem!important;cursor:pointer}.slider-control small{font-family:"DM Sans",sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}.slider-control:hover{background:#b10f1d!important;border-color:#b10f1d!important;color:#fff!important}.reviews{padding:105px 0;background-image:linear-gradient(rgba(14,11,10,.6),rgba(14,11,10,.6)),url("images/image_4.jpg");background-size:cover;background-position:center}.reviews-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:45px}.reviews-heading h2{font-size:clamp(2.25rem,4vw,4rem);letter-spacing:-.045em}.rating{display:flex;flex-direction:column;gap:5px;color:#a29da0;font-size:.8rem}.rating b{font-size:1.15rem;color:#e0a640}.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin:0 auto}.review-card{background:#1b191c;border:1px solid rgba(255,255,255,.07);padding:22px;min-height:232px;display:flex;flex-direction:column;box-shadow:0 8px 22px rgba(0,0,0,.35)}.review-top{display:flex;align-items:center;gap:11px}.review-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#262528,#7f1220);color:#fff;font-size:.7rem;font-weight:700}.review-top h3{font-family:"DM Sans",sans-serif;font-size:.87rem;line-height:1.2}.review-top p{margin:3px 0 0;color:#e39b16;font-size:.76rem;letter-spacing:.08em}.review-card blockquote{margin:19px 0;font-size:.84rem;line-height:1.62;color:#d3cecf}.review-source{margin-top:auto;color:#8f8a8c;font-size:.67rem}.whatsapp{position:fixed;right:24px;bottom:24px;z-index:20;display:flex;align-items:center;gap:9px;padding:13px 17px 13px 13px;border-radius:999px;background:#25d366;color:#fff;text-decoration:none;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.82rem;box-shadow:0 8px 22px rgba(0,0,0,.28);transition:transform .2s,background .2s}.whatsapp:hover{background:#1ebe5b;transform:translateY(-3px)}.whatsapp svg{width:25px;height:25px;fill:currentColor}@media(max-width:850px){.reviews-grid{grid-template-columns:repeat(2,1fr)}.reviews-heading{align-items:start;flex-direction:column;gap:20px}}@media(max-width:600px){.slider-control{min-width:40px!important;width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important}.slider-control small{display:none}.reviews{padding:72px 0}.reviews-grid{grid-template-columns:1fr}.review-card{min-height:0}}`;
 document.head.append(style);
