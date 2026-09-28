@@ -29,10 +29,24 @@
     return modal;
   }
 
+  function openModal(modal) {
+    modal.classList.add('is-open');
+    var first = modal.querySelector('input');
+    if (first) first.focus();
+  }
+
   function init() {
+    addStyles();
+    var modal = document.getElementById('caridadesModal') || createModal();
+    document.addEventListener('click', function (event) {
+      var link = event.target.closest('a[href]');
+      if (!link || link.hostname !== 'bbaimmigration.cliogrow.com' || link.pathname !== '/intake/28efc341f3c9c3d64e3c35f6213429d6') return;
+      event.preventDefault();
+      openModal(modal);
+    });
+
     var top = document.querySelector('.mhrTop');
     if (!top) return;
-    addStyles();
     var button = document.getElementById('caridadesBtn') || document.getElementById('caridadesSharedBtn');
     if (!button) {
       button = document.createElement('button');
@@ -42,8 +56,7 @@
       button.innerHTML = '<img src="' + assetUrl + '" alt="">Caridades Cat&oacute;licas';
       top.appendChild(button);
     }
-    var modal = document.getElementById('caridadesModal') || createModal();
-    button.addEventListener('click', function () { modal.classList.add('is-open'); var first = modal.querySelector('input'); if (first) first.focus(); });
+    button.addEventListener('click', function () { openModal(modal); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
