@@ -2539,6 +2539,78 @@ input[type=checkbox].validationError  + .cfRequiredMark:before {
 	line-height: 1.2;
 }
 
+.mcTeamDirectory ul.mcTeamGrid {
+	margin: 40px auto;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	justify-content: flex-start;
+	align-items: stretch;
+	flex-wrap: wrap;
+	gap: 24px;
+}
+.mcTeamDirectory ul.mcTeamGrid li {
+	width: calc(25% - 18px);
+	max-width: none;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	border: 1px solid #d9dedc;
+	background: #fff;
+	text-align: left;
+	transition: transform .2s ease, box-shadow .2s ease;
+}
+.mcTeamCard {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	color: #122a26;
+	text-decoration: none;
+}
+.mcTeamCard img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	object-position: center 25%;
+}
+.mcTeamCard h2 {
+	margin: 0;
+	padding: 16px 16px 6px;
+	font-size: 18px;
+	text-align: left;
+}
+.mcTeamProfile {
+	margin-top: auto;
+	padding: 0 16px 16px;
+	color: #8b5d24;
+	font-weight: 700;
+}
+.mcTeamDirectory ul.mcTeamGrid li:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 8px 20px rgba(18, 42, 38, .14);
+}
+.mcTeamCard:focus-visible {
+	outline: 3px solid #dda762;
+	outline-offset: 3px;
+}
+#mainMenu li#menu-item-6106 > ul.sub-menu {
+	max-height: 70vh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+@media screen and (max-width: 1100px) {
+	.mcTeamDirectory ul.mcTeamGrid li { width: calc(33.333% - 16px); }
+}
+@media screen and (max-width: 700px) {
+	.mcTeamDirectory ul.mcTeamGrid li { width: calc(50% - 12px); }
+}
+@media screen and (max-width: 460px) {
+	.mcTeamDirectory ul.mcTeamGrid li { width: 100%; max-width: 320px; }
+}
+
 @media screen and (min-width: 1640px){
 	.mcAttorneys h2{ font-size: 22px; }
 	.mcAttorneys h2 a{ font-size: 22px; }	
