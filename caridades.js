@@ -47,6 +47,8 @@
 
     var top = document.querySelector('.mhrTop');
     if (!top) return;
+    var headerConsultLink = top.querySelector('a.mhLang[href*="28efc341f3c9c3d64e3c35f6213429d6"]');
+    if (headerConsultLink) headerConsultLink.remove();
     var button = document.getElementById('caridadesBtn') || document.getElementById('caridadesSharedBtn');
     if (!button) {
       button = document.createElement('button');
