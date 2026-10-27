@@ -9,6 +9,10 @@ var dashboardMessage = document.getElementById('dashboard-message');
 var requestList = document.getElementById('request-list');
 var requestCount = document.getElementById('request-count');
 var searchInput = document.getElementById('search');
+var totalCount = document.getElementById('total-count');
+var detainedCount = document.getElementById('detained-count');
+var urgentCount = document.getElementById('urgent-count');
+var refreshButton = document.getElementById('refresh-button');
 var requests = [];
 var supabase;
 
@@ -35,6 +39,32 @@ function displayBoolean(value) {
 	return value === true ? 'Sí' : value === false ? 'No' : 'No especificado';
 }
 
+function getLoginErrorMessage(error) {
+	var code = error && error.code ? error.code : '';
+	var message = error && error.message ? error.message.toLowerCase() : '';
+
+	if (code === 'email_not_confirmed' || message.includes('email not confirmed')) {
+		return 'El correo aún no está confirmado. Pida al administrador que confirme la cuenta en Supabase Authentication → Users o reenvíe la invitación.';
+	}
+	if (code === 'invalid_credentials' || message.includes('invalid login credentials')) {
+		return 'El correo o la contraseña no son correctos. Verifique sus datos e inténtelo de nuevo.';
+	}
+	if (code === 'user_banned' || message.includes('user is banned')) {
+		return 'Esta cuenta está deshabilitada. Contacte al administrador de Supabase para restablecer el acceso.';
+	}
+	if (code === 'too_many_requests' || message.includes('too many requests')) {
+		return 'Se realizaron demasiados intentos. Espere unos minutos antes de volver a intentarlo.';
+	}
+	if (error && (error.name === 'TypeError' || message.includes('fetch'))) {
+		return 'No fue posible conectar con Supabase. Compruebe su conexión e inténtelo de nuevo.';
+	}
+	return 'No se pudo iniciar sesión. Revise sus datos o contacte al administrador del sistema.';
+}
+
+function isUrgent(request) {
+	return typeof request.urgencia === 'string' && request.urgencia.trim().length > 0;
+}
+
 function addDetail(list, label, value) {
 	var term = document.createElement('dt');
 	term.textContent = label;
@@ -48,12 +78,16 @@ function addDetail(list, label, value) {
 function renderRequests() {
 	var query = searchInput.value.trim().toLocaleLowerCase();
 	var filtered = requests.filter(function (request) {
-		return Object.values(request).join(' ').toLocaleLowerCase().includes(query);
+		return [request.nombre_completo, request.correo, request.telefono]
+			.some(function (value) { return String(value || '').toLocaleLowerCase().includes(query); });
 	});
 	requestList.replaceChildren();
 	requestCount.textContent = requests.length === 100
 		? 'Mostrando hasta 100 solicitudes más recientes. ' + filtered.length + ' coinciden con la búsqueda.'
 		: filtered.length + ' de ' + requests.length + ' solicitudes';
+	totalCount.textContent = requests.length === 100 ? '100+' : String(requests.length);
+	detainedCount.textContent = String(requests.filter(function (request) { return request.detenido === true; }).length);
+	urgentCount.textContent = String(requests.filter(isUrgent).length);
 
 	if (!filtered.length) {
 		var empty = document.createElement('p');
@@ -68,20 +102,45 @@ function renderRequests() {
 		card.className = 'request-card';
 		var heading = document.createElement('div');
 		heading.className = 'card-heading';
-		var title = document.createElement('h2');
+		var identity = document.createElement('div');
+		identity.className = 'card-identity';
+		var avatar = document.createElement('span');
+		avatar.className = 'avatar';
+		avatar.setAttribute('aria-hidden', 'true');
+		avatar.textContent = (request.nombre_completo || '?').trim().charAt(0).toLocaleUpperCase();
+		var identityText = document.createElement('div');
+		var title = document.createElement('h3');
 		title.textContent = request.nombre_completo;
 		var received = document.createElement('span');
 		received.className = 'received';
 		received.textContent = 'Recibida ' + formatDate(request.created_at, true);
-		heading.append(title, received);
+		identityText.append(title, received);
+		identity.append(avatar, identityText);
 
-		var summary = document.createElement('p');
-		summary.className = 'summary';
-		summary.textContent = request.tipo_ayuda === 'Otro' && request.tipo_ayuda_otro
+		var tags = document.createElement('div');
+		tags.className = 'card-tags';
+		function addBadge(text, className) {
+			var badge = document.createElement('span');
+			badge.className = 'badge ' + className;
+			badge.textContent = text;
+			tags.appendChild(badge);
+		}
+		var caseType = request.tipo_ayuda === 'Otro' && request.tipo_ayuda_otro
 			? 'Otro: ' + request.tipo_ayuda_otro
 			: request.tipo_ayuda;
+		addBadge(caseType || 'Tipo sin especificar', 'badge-case');
+		addBadge(request.detenido ? 'Detención reportada' : 'Sin detención reportada', request.detenido ? 'badge-alert' : 'badge-neutral');
+		if (isUrgent(request)) addBadge('Urgencia indicada', 'badge-urgent');
+		heading.append(identity, tags);
+
+		var subline = document.createElement('p');
+		subline.className = 'card-subline';
+		var contact = document.createElement('span');
+		contact.textContent = [request.correo, request.telefono].filter(Boolean).join(' · ') || 'Sin datos de contacto';
+		subline.appendChild(contact);
 
 		var details = document.createElement('details');
+		details.className = 'card-details';
 		var summaryToggle = document.createElement('summary');
 		summaryToggle.textContent = 'Ver detalles completos';
 		var detailList = document.createElement('dl');
@@ -108,47 +167,57 @@ function renderRequests() {
 			addDetail(detailList, item[0], item[1]);
 		});
 		details.append(summaryToggle, detailList);
-		card.append(heading, summary, details);
+		card.append(heading, subline, details);
 		requestList.appendChild(card);
 	});
 }
 
 async function loadRequests() {
 	showMessage(dashboardMessage, '');
-	var result = await supabase
-		.from('solicitudes_ayuda')
-		.select('*')
-		.order('created_at', { ascending: false })
-		.limit(100);
+	refreshButton.disabled = true;
+	refreshButton.textContent = 'Cargando…';
+	try {
+		var result = await supabase
+			.from('solicitudes_ayuda')
+			.select('*')
+			.order('created_at', { ascending: false })
+			.limit(100);
 
-	if (result.error) {
-		console.error('No se pudieron cargar las solicitudes.', result.error);
-		showMessage(dashboardMessage, 'No se pudieron cargar las solicitudes. Verifique la conexión e inténtelo de nuevo.');
-		return;
+		if (result.error) throw result.error;
+		requests = result.data;
+		renderRequests();
+	} catch (error) {
+		console.error('No se pudieron cargar las solicitudes.', error);
+		showMessage(dashboardMessage, 'No se pudieron cargar las solicitudes. Verifique su conexión y los permisos RLS de Supabase e inténtelo de nuevo.');
+	} finally {
+		refreshButton.disabled = false;
+		refreshButton.innerHTML = '<span aria-hidden="true">↻</span> Actualizar';
 	}
-
-	requests = result.data;
-	renderRequests();
 }
 
 async function showAuthorizedDashboard() {
-	var access = await supabase.rpc('is_solicitudes_admin');
-	if (access.error) {
-		console.error('No se pudieron verificar los permisos de administración.', access.error);
-		showMessage(loginMessage, 'No se pudieron verificar los permisos. Compruebe su conexión e inténtelo de nuevo.');
-		setView('login');
-		return;
-	}
-	if (access.data !== true) {
-		var signOutResult = await supabase.auth.signOut();
-		if (signOutResult.error) {
-			console.error('No se pudo cerrar la sesión de una cuenta no autorizada.', signOutResult.error);
+	try {
+		var access = await supabase.rpc('is_solicitudes_admin');
+		if (access.error) throw access.error;
+		if (access.data !== true) {
+			var sessionResult = await supabase.auth.getSession();
+			var email = sessionResult.data.session && sessionResult.data.session.user.email;
+			var deniedMessage = document.getElementById('denied-message');
+			deniedMessage.textContent = email && email.toLowerCase() === 'admin@gmail.com'
+				? 'admin@gmail.com pudo iniciar sesión, pero aún no tiene autorización para ver solicitudes. Confirme el usuario en Supabase Authentication → Users y agregue su ID de usuario a public.admin_users. El panel no concede permisos solo por coincidir el correo.'
+				: 'La autenticación fue correcta, pero esta cuenta no está autorizada para consultar solicitudes. Pida al administrador del sistema que habilite su usuario en public.admin_users.';
+			var signOutResult = await supabase.auth.signOut();
+			if (signOutResult.error) console.error('No se pudo cerrar la sesión de una cuenta no autorizada.', signOutResult.error);
+			setView('denied');
+			return;
 		}
-		setView('denied');
-		return;
+		setView('dashboard');
+		await loadRequests();
+	} catch (error) {
+		console.error('No se pudieron verificar los permisos de administración.', error);
+		setView('login');
+		showMessage(loginMessage, 'No se pudieron verificar los permisos con Supabase. Compruebe su conexión y que exista la función is_solicitudes_admin en la base de datos.');
 	}
-	setView('dashboard');
-	await loadRequests();
 }
 
 loginForm.addEventListener('submit', async function (event) {
@@ -156,6 +225,9 @@ loginForm.addEventListener('submit', async function (event) {
 	showMessage(loginMessage, '');
 	var button = loginForm.querySelector('button');
 	button.disabled = true;
+	button.classList.add('is-loading');
+	button.setAttribute('aria-busy', 'true');
+	button.querySelector('.button-label').textContent = 'Verificando…';
 
 	try {
 		var result = await supabase.auth.signInWithPassword({
@@ -166,20 +238,26 @@ loginForm.addEventListener('submit', async function (event) {
 		await showAuthorizedDashboard();
 	} catch (error) {
 		console.error('No se pudo iniciar sesión en el panel.', error);
-		showMessage(loginMessage, 'No se pudo iniciar sesión. Revise sus datos e inténtelo de nuevo.');
+		showMessage(loginMessage, getLoginErrorMessage(error));
 	} finally {
 		button.disabled = false;
+		button.classList.remove('is-loading');
+		button.removeAttribute('aria-busy');
+		button.querySelector('.button-label').textContent = 'Iniciar sesión';
 	}
 });
 
 async function signOut() {
-	var result = await supabase.auth.signOut();
-	if (result.error) {
-		console.error('No se pudo cerrar la sesión.', result.error);
+	try {
+		var result = await supabase.auth.signOut();
+		if (result.error) throw result.error;
+		requests = [];
+		setView('login');
+		showMessage(loginMessage, '');
+	} catch (error) {
+		console.error('No se pudo cerrar la sesión.', error);
 		showMessage(dashboardMessage, 'No se pudo cerrar la sesión. Inténtelo de nuevo.');
-		return;
 	}
-	setView('login');
 }
 
 document.getElementById('logout-button').addEventListener('click', signOut);
@@ -195,11 +273,24 @@ try {
 			showMessage(loginMessage, 'No se pudo verificar la sesión. Recargue la página e inténtelo de nuevo.');
 			return;
 		}
-		if (result.data.session) return showAuthorizedDashboard();
+		if (result.data.session) {
+			document.getElementById('account-label').textContent = result.data.session.user.email || 'Personal autorizado';
+			return showAuthorizedDashboard();
+		}
 		setView('login');
 	}).catch(function (error) {
 		console.error('No se pudo iniciar el panel.', error);
 		showMessage(loginMessage, 'No se pudo conectar con el servicio de autenticación.');
+	});
+	supabase.auth.onAuthStateChange(function (event, session) {
+		if (event === 'SIGNED_OUT' || !session) {
+			requests = [];
+			setView('login');
+			return;
+		}
+		if (event === 'SIGNED_IN') {
+			document.getElementById('account-label').textContent = session.user.email || 'Personal autorizado';
+		}
 	});
 } catch (error) {
 	console.error('La configuración de Supabase no está completa.', error);

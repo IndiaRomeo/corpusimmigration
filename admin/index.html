@@ -4,58 +4,106 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
-	<title>Administración de solicitudes | Corpus Inmigración</title>
+	<meta name="theme-color" content="#06312d">
+	<title>Panel de Administración | Corpus Inmigración Law Group</title>
 	<link rel="stylesheet" href="admin.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 	<script src="../supabase-config.js"></script>
 	<script type="module" src="admin.js"></script>
 </head>
 <body>
-	<main class="shell">
-		<header class="topbar">
-			<a class="brand" href="../">Corpus Inmigración</a>
-			<span class="secure-label">Acceso para personal autorizado</span>
-		</header>
-
-		<section class="panel login-panel" id="login-panel">
-			<p class="eyebrow">Portal interno</p>
-			<h1>Iniciar sesión</h1>
-			<p>Use la cuenta de personal autorizada para consultar las solicitudes.</p>
-			<form id="login-form">
-				<label for="email">Correo electrónico</label>
-				<input id="email" name="email" type="email" autocomplete="username" required>
-				<label for="password">Contraseña</label>
-				<input id="password" name="password" type="password" autocomplete="current-password" required>
-				<button type="submit">Entrar</button>
-			</form>
-			<p class="message" id="login-message" role="status" aria-live="polite" hidden></p>
+	<main class="app-shell">
+		<section class="login-view" id="login-panel">
+			<div class="login-brand-panel">
+				<a class="brand-lockup" href="../" aria-label="Corpus Inmigración Law Group, página principal">
+					<img src="../wp-content/themes/bba_2022_esp/img/logos/mainLogo.png" alt="">
+					<span>Corpus Inmigración <small>LAW GROUP</small></span>
+				</a>
+				<div class="brand-message">
+					<span class="brand-rule"></span>
+					<p class="eyebrow">Portal privado</p>
+					<h1>Un espacio seguro para servir mejor.</h1>
+					<p>Acceso confidencial para el equipo autorizado de Corpus Inmigración Law Group.</p>
+				</div>
+				<p class="brand-footer">Comprometidos con cada historia. Guiados por la ley.</p>
+			</div>
+			<div class="login-content">
+				<div class="login-content-inner">
+					<div class="mobile-brand">
+						<img src="../wp-content/themes/bba_2022_esp/img/logos/mainLogo.png" alt="Corpus Inmigración Law Group">
+					</div>
+					<p class="eyebrow">Acceso del personal</p>
+					<h2>Bienvenido</h2>
+					<p class="login-description">Inicie sesión con la cuenta autorizada para consultar las solicitudes.</p>
+					<form id="login-form">
+						<label for="email">Correo electrónico</label>
+						<input id="email" name="email" type="email" autocomplete="username" placeholder="nombre@bufete.com" required>
+						<label for="password">Contraseña</label>
+						<input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ingrese su contraseña" required>
+						<button class="primary-button login-button" type="submit">
+							<span class="button-label">Iniciar sesión</span>
+							<span class="button-loader" aria-hidden="true"></span>
+							<span class="button-arrow" aria-hidden="true">→</span>
+						</button>
+					</form>
+					<p class="auth-message" id="login-message" role="alert" aria-live="assertive" hidden></p>
+					<div class="privacy-note"><span class="lock-icon" aria-hidden="true">◆</span><span>Acceso protegido · Información confidencial</span></div>
+				</div>
+			</div>
 		</section>
 
-		<section class="panel" id="denied-panel" hidden>
-			<p class="eyebrow">Acceso restringido</p>
-			<h1>Cuenta sin autorización</h1>
-			<p>La cuenta inició sesión, pero no tiene permiso para ver solicitudes. Contacte al administrador del sistema.</p>
-			<button class="secondary" id="denied-logout" type="button">Cerrar sesión</button>
+		<section class="denied-view" id="denied-panel" hidden>
+			<a class="brand-lockup denied-brand" href="../">
+				<img src="../wp-content/themes/bba_2022_esp/img/logos/mainLogo.png" alt="">
+				<span>Corpus Inmigración <small>LAW GROUP</small></span>
+			</a>
+			<div class="denied-card">
+				<p class="eyebrow">Acceso restringido</p>
+				<h1>Esta cuenta no tiene acceso al panel</h1>
+				<p id="denied-message">La autenticación fue correcta, pero el usuario no está autorizado para consultar solicitudes. Pida al administrador del sistema que habilite su cuenta.</p>
+				<button class="secondary-button" id="denied-logout" type="button">Volver al inicio de sesión</button>
+			</div>
 		</section>
 
 		<section class="dashboard" id="dashboard" hidden>
-			<header class="dashboard-header">
-				<div>
-					<p class="eyebrow">Portal interno</p>
-					<h1>Solicitudes de ayuda</h1>
-					<p class="subheading">Información confidencial: acceso exclusivo al personal autorizado.</p>
-				</div>
-				<div class="actions">
-					<button class="secondary" id="refresh-button" type="button">Actualizar</button>
-					<button class="secondary" id="logout-button" type="button">Cerrar sesión</button>
+			<header class="dashboard-nav">
+				<a class="dashboard-brand" href="../">
+					<img src="../wp-content/themes/bba_2022_esp/img/logos/mainLogo.png" alt="">
+					<span>Corpus Inmigración <small>LAW GROUP</small></span>
+				</a>
+				<div class="nav-right">
+					<span class="nav-section">Panel de Administración</span>
+					<span class="nav-divider" aria-hidden="true"></span>
+					<span class="account-label" id="account-label">Personal autorizado</span>
+					<button class="secondary-button logout-button" id="logout-button" type="button"><span aria-hidden="true">↪</span> Cerrar sesión</button>
 				</div>
 			</header>
-			<div class="toolbar">
-				<label class="search-label" for="search">Buscar solicitudes</label>
-				<input id="search" type="search" placeholder="Nombre, correo, teléfono o tipo de ayuda">
-				<p id="request-count" class="request-count" aria-live="polite"></p>
-			</div>
-			<p class="message" id="dashboard-message" role="status" aria-live="polite" hidden></p>
-			<div class="request-list" id="request-list"></div>
+			<main class="dashboard-main">
+				<div class="dashboard-heading">
+					<div>
+						<p class="eyebrow">Gestión de casos</p>
+						<h1>Solicitudes de ayuda</h1>
+						<p class="dashboard-intro">Información confidencial de las personas que solicitan asistencia legal.</p>
+					</div>
+					<button class="secondary-button refresh-button" id="refresh-button" type="button"><span aria-hidden="true">↻</span> Actualizar</button>
+				</div>
+				<div class="stats-grid" aria-label="Resumen de solicitudes">
+					<div class="stat-card"><span class="stat-label">Solicitudes cargadas</span><strong id="total-count">—</strong><span class="stat-caption">Registros recientes</span></div>
+					<div class="stat-card"><span class="stat-label">Casos con detención</span><strong id="detained-count">—</strong><span class="stat-caption">Requieren atención especial</span></div>
+					<div class="stat-card"><span class="stat-label">Con nota de urgencia</span><strong id="urgent-count">—</strong><span class="stat-caption">Revise los detalles del caso</span></div>
+				</div>
+				<section class="records-panel" aria-labelledby="records-title">
+					<div class="records-toolbar">
+						<div><h2 id="records-title">Casos recibidos</h2><p id="request-count" class="request-count" aria-live="polite">Cargando solicitudes…</p></div>
+						<div class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><label class="visually-hidden" for="search">Buscar por nombre, correo o teléfono</label><input id="search" type="search" placeholder="Buscar nombre, correo o teléfono"></div>
+					</div>
+					<p class="dashboard-message" id="dashboard-message" role="alert" aria-live="assertive" hidden></p>
+					<div class="request-list" id="request-list"></div>
+				</section>
+				<p class="confidentiality-footer"><span aria-hidden="true">◆</span> Información confidencial · Para uso exclusivo del personal autorizado</p>
+			</main>
 		</section>
 	</main>
 </body>
