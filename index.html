@@ -804,7 +804,7 @@ WebFontConfig = {
 				<label class="choice"><input type="checkbox" name="autoriza_contacto" value="Sí" required> Autorizo a Corpus Inmigración Law Group a contactarme sobre mi solicitud.</label>
 			</fieldset>
 			<button class="caridadesSubmit" type="submit">Enviar solicitud</button>
-			<p class="caridadesStatus" id="caridadesStatus" role="status" hidden>Solicitud enviada. Gracias. Nuestro equipo revisará su información y se comunicará con usted pronto.</p>
+			<p class="caridadesStatus" id="caridadesStatus" role="status" aria-live="polite" hidden></p>
 		</form>
 	</div>
 </div>
@@ -822,17 +822,21 @@ WebFontConfig = {
 	function toggleConditionalFields() {
 		otherBox.classList.toggle('is-visible', otherType.checked);
 		hearingDateBox.classList.toggle('is-visible', hearingYes.checked);
+		otherBox.querySelector('input').required = otherType.checked;
+		hearingDateBox.querySelector('input').required = hearingYes.checked;
 	}
 	form.addEventListener('change', toggleConditionalFields);
+	toggleConditionalFields();
 	function closeModal() { modal.classList.remove('is-open'); modal.setAttribute('aria-hidden', 'true'); }
 	openButton.addEventListener('click', function () { modal.classList.add('is-open'); modal.removeAttribute('aria-hidden'); form.querySelector('input').focus(); });
 	closeButton.addEventListener('click', closeModal);
 	modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(); });
 	document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeModal(); });
-	form.addEventListener('submit', function (event) { event.preventDefault(); status.hidden = false; form.reset(); toggleConditionalFields(); });
 }());
 </script>
 
+<script src="supabase-config.js"></script>
+<script type="module" src="request-form.js"></script>
 <script src=""></script>
 <script src=""></script>
 <script src=""></script>
