@@ -1,6 +1,6 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "Defensa Inmigrante Law Group",
+    "short_name": "Defensa Inmigrante",
     "icons": [
         {
             "src": "/wp-content/favicon/android-chrome-192x192.png",
@@ -13,7 +13,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "theme_color": "#082849",
+    "background_color": "#082849",
     "display": "standalone"
 }
